@@ -3,66 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bhai's AI Tools</title>
+    <title>AI Health Assistant</title>
     <style>
-        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; text-align: center; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; background: #eee; }
-        .active { background: #007bff; color: white; }
-        textarea { width: 100%; height: 100px; border-radius: 8px; border: 1px solid #ccc; padding: 10px; box-sizing: border-box; }
-        button#magic-btn { background: #28a745; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; margin-top: 15px; font-weight: bold; cursor: pointer; }
-        #output { margin-top: 15px; padding: 15px; background: #fdfdfd; border: 1px solid #ddd; text-align: left; display: none; white-space: pre-wrap; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h2 { color: #d9534f; }
+        textarea { width: 100%; height: 120px; border-radius: 10px; border: 1px solid #ccc; padding: 12px; box-sizing: border-box; font-size: 16px; margin-top: 10px; }
+        button { background: #0275d8; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; width: 100%; font-size: 18px; margin-top: 15px; font-weight: bold; }
+        #output { margin-top: 20px; padding: 15px; background: #f8f9fa; border-left: 5px solid #d9534f; text-align: left; display: none; white-space: pre-wrap; }
+        .disclaimer { font-size: 12px; color: #777; margin-top: 15px; font-style: italic; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2 id="title">🤖 AI Humanizer</h2>
-    <div class="tabs">
-        <button class="tab-btn active" onclick="setTab('humanizer')">✍️ Humanizer</button>
-        <button class="tab-btn" onclick="setTab('health')">🏥 Health Care</button>
-    </div>
-    <textarea id="userInput" placeholder="Yahan likho..."></textarea>
-    <button id="magic-btn" onclick="askAI()">✨ Magic Start Karo</button>
+    <h2>🏥 AI Health Assistant</h2>
+    <p>Apni bimari ya lakshan yahan likhein:</p>
+    <textarea id="userInput" placeholder="E.g. Mujhe kal se sar dard hai, kya karun?"></textarea>
+    <button onclick="askHealthAI()">✨ Upchar Batayein</button>
     <div id="output"></div>
+    <div class="disclaimer">Note: Ye AI advice hai, asli doctor se zaroor milein.</div>
 </div>
 
 <script>
-    let mode = 'humanizer';
-    // ✅ Ekdum Sahi Key (Double Checked)
-    const key = 'AIzaSyDEl-xQYeLOFyK6HnisN4piRWOTGG7MNDU';
+    // ✅ Yeh rahi teri sahi API Key
+    const apiKey = 'AIzaSyDEl-xQYeLOFyK6HnisN4piRWOTGG7MNDU';
 
-    function setTab(t) {
-        mode = t;
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        event.target.classList.add('active');
-        document.getElementById('title').innerText = t === 'humanizer' ? '🤖 AI Humanizer' : '🏥 AI Health Assistant';
-    }
-
-    async function askAI() {
-        const text = document.getElementById('userInput').value;
+    async function askHealthAI() {
+        const input = document.getElementById('userInput').value;
         const out = document.getElementById('output');
-        if(!text) return alert("Kuch toh likho bhai!");
+        if(!input) return alert("Bhai, apni problem toh likho!");
         
         out.style.display = "block";
-        out.innerText = "⏳ AI Soch raha hai...";
+        out.innerText = "⏳ Soch raha hoon... thoda ruko...";
 
-        let p = mode === 'humanizer' ? "Make this human-like: " + text : "Health tips for: " + text;
+        const prompt = "Act as a friendly health assistant. Provide helpful home remedies and health tips for: " + input;
 
         try {
-            const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: [{ text: p }] }] })
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
             });
-            const d = await resp.json();
-            if(d.candidates) {
-                out.innerText = d.candidates[0].content.parts[0].text;
+            const data = await response.json();
+            
+            if(data.candidates && data.candidates[0].content.parts[0].text) {
+                out.innerText = data.candidates[0].content.parts[0].text;
             } else {
-                out.innerText = "Error: API response mein problem hai. " + JSON.stringify(d);
+                out.innerText = "Error: AI response nahi de raha. Key check karein.";
             }
         } catch (e) {
-            out.innerText = "Error: Network ya Key issue!";
+            out.innerText = "Error: Internet ya API ka issue hai!";
         }
     }
 </script>
